@@ -1,6 +1,5 @@
 import os
 import sqlite3
-from Flights import Flights
 from Formatter import Formatter
 
 
@@ -8,6 +7,7 @@ class DBOperations:
     """Handles database operations and user interactions"""
 
     # SQL query constants
+    sql_available_tables = "SELECT name FROM sqlite_master WHERE type='table';"
     sql_available_tables_views = (
         "SELECT name FROM sqlite_master WHERE type='table' or type='view';"
     )
@@ -15,22 +15,19 @@ class DBOperations:
     sql_select_all = "SELECT {0} FROM {1}"
     sql_search = "SELECT {0} FROM {1} WHERE {2} = ?"
     sql_criteria_search = "SELECT {0} FROM {1} WHERE {2} ORDER BY {3}"
-
-    sql_insert = ""
-    sql_alter_data = ""
-    sql_update_data = ""
-    sql_delete_data = ""
+    sql_insert = "INSERT INTO {0} ({1}) VALUES ({2})"
+    sql_update_data = "UPDATE {0} SET {1} WHERE {2}"
+    sql_delete_data = "DELETE FROM {0} WHERE {1}"
 
     def __init__(self):
         try:
             self.conn = sqlite3.connect("FlightManagement.db")
             self.cur = self.conn.cursor()
+            # Enable foreign key constraints
+            self.conn.execute("PRAGMA foreign_keys = ON;")
 
             # Initialize schema and sample data
             self._initialize_database()
-
-            # Enable foreign key constraints
-            self.conn.execute("PRAGMA foreign_keys = ON;")
 
         except Exception as e:
             print(f"Database initialization failed: {str(e)}")
@@ -39,6 +36,8 @@ class DBOperations:
         """Initialize database schema and sample data"""
         try:
             with open(os.path.join("SQL", "schema.sql"), "r") as sql_script:
+                self.conn.executescript(sql_script.read())
+            with open(os.path.join("SQL", "views.sql"), "r") as sql_script:
                 self.conn.executescript(sql_script.read())
             with open(os.path.join("SQL", "sample_data.sql"), "r") as sql_script:
                 self.conn.executescript(sql_script.read())
@@ -52,7 +51,7 @@ class DBOperations:
 
         while True:
             # Level 1: Display available views
-            print("\nSelect the table of your interest: ")
+            print("\nSelect the table of your interest to view records:")
             for index, view in enumerate(available_views, 1):
                 print(f" {index}. {view[0]}")
             print(" *. < Back")
@@ -138,7 +137,7 @@ class DBOperations:
             print("\nSelect the view of your interest: ")
             print(" 1. Flights Dashboards")
             print(" 2. Pilots Dashboards")
-            print(" 3. Destinations Dashboards")
+            print(" 3. Airports Dashboards")
             print(" *. < Back")
 
             view_choice = input("Enter your choice: ")
@@ -283,9 +282,9 @@ class DBOperations:
             elif view_choice == "3":
                 while True:
                     print("\nSelect the view of your interest: ")
-                    print(" 1. View All Destinations by Flights Number")
-                    print(" 2. View Destinations with Scheduled Flights")
-                    print(" 3. View Destinations with Missing Data")
+                    print(" 1. View All Airports by Flights Number")
+                    print(" 2. View Airports with Scheduled Flights")
+                    print(" 3. View Airports with Missing Data")
                     print(" 4. More Custom Views!")
                     print(" *. < Back")
                     print(" **. << Main menu")
@@ -297,7 +296,7 @@ class DBOperations:
                     elif view_choice == "*":
                         break
                     elif view_choice == "1":
-                        # All Destinations by Flights Number
+                        # All Airports by Flights Number
                         cursor = self.cur.execute(
                             self.sql_criteria_search.format(
                                 "*",
@@ -308,7 +307,7 @@ class DBOperations:
                         )
                         Formatter.print_formatted(cursor)
                     elif view_choice == "2":
-                        # Destinations with scheduled flights
+                        # Airports with scheduled flights
                         cursor = self.cur.execute(
                             self.sql_criteria_search.format(
                                 "*",
@@ -319,7 +318,7 @@ class DBOperations:
                         )
                         Formatter.print_formatted(cursor)
                     elif view_choice == "3":
-                        # Destinations with Missing Data
+                        # Airports with Missing Data
                         cursor = self.cur.execute(
                             self.sql_criteria_search.format(
                                 "*",
@@ -335,86 +334,209 @@ class DBOperations:
                 print("Invalid choice")
 
     def insert_data(self):
-        try:
-            self.get_connection()
+        available_tables = self.cur.execute(self.sql_available_tables).fetchall()
 
-            flight = Flights()
-            flight.set_flight_id(int(input("Enter FlightID: ")))
+        while True:
+            # Level 1: Display available table options
+            print("\nSelect the table of your interest to add records:")
+            for index, view in enumerate(available_tables, 1):
+                print(f" {index}. {view[0]}")
+            print(" *. < Back")
 
-            self.cur.execute(self.sql_insert, tuple(str(flight).split("\n")))
+            view_choice = input("Enter your choice: ")
 
-            self.conn.commit()
-            print("Inserted data successfully")
-        except Exception as e:
-            print(e)
-        finally:
-            self.conn.close()
+            if view_choice == "*":
+                return
 
-    def select_all(self):
-        try:
-            self.get_connection()
-            self.cur.execute(self.sql_select_all)
-            result = self.cur.fetchall()
+            if not view_choice.isdigit() or int(view_choice) > len(available_tables):
+                print("Invalid choice")
+                continue
 
-            # think how you could develop this method to show the records
+            view_name = available_tables[int(view_choice) - 1][0]
 
-        except Exception as e:
-            print(e)
-        finally:
-            self.conn.close()
+            # Level 2: Handle view operations
+            while True:
+                print(f"\n[{view_name}] Enter the data to add: ")
 
-    def search_data(self):
-        try:
-            self.get_connection()
-            flightID = int(input("Enter FlightNo: "))
-            self.cur.execute(self.sql_search, tuple(str(flightID)))
-            result = self.cur.fetchone()
-            if type(result) == type(tuple()):
-                for index, detail in enumerate(result):
-                    if index == 0:
-                        print("Flight ID: " + str(detail))
-                    elif index == 1:
-                        print("Flight Origin: " + detail)
-                    elif index == 2:
-                        print("Flight Destination: " + detail)
-                    else:
-                        print("Status: " + str(detail))
-            else:
-                print("No Record")
+                columns = self.cur.execute(
+                    self.sql_table_info.format(view_name)
+                ).fetchall()
 
-        except Exception as e:
-            print(e)
-        finally:
-            self.conn.close()
+                columns = [
+                    (column[1], column[2], "Required" if column[3] == 1 else "Optional")
+                    for column in columns
+                ]
+
+                data = {}
+                for column in columns:
+                    data[column] = input(f"Enter the value for {str(column)}: ")
+
+                try:
+                    columns_str = ", ".join(column[0] for column in columns)
+                    values_str = ", ".join(
+                        f"'{data[column]}'" for column in columns
+                    ).replace("''", "NULL")
+
+                    self.cur.execute(
+                        self.sql_insert.format(view_name, columns_str, values_str)
+                    )
+                    self.conn.commit()
+                    print("Record added successfully!")
+
+                except Exception as e:
+                    print(f"Error: {e}")
+
+                add_more = input("Do you want to add more records? [Y/n]: ")
+                if add_more.lower() != "y":
+                    break
 
     def update_data(self):
-        try:
-            self.get_connection()
+        available_tables = self.cur.execute(self.sql_available_tables).fetchall()
 
-            # Update statement
+        while True:
+            # Level 1: Display available table options
+            print("\nSelect the table of your interest to update records:")
+            for index, view in enumerate(available_tables, 1):
+                print(f" {index}. {view[0]}")
+            print(" *. < Back")
 
-            if result.rowcount != 0:
-                print(str(result.rowcount) + "Row(s) affected.")
-            else:
-                print("Cannot find this record in the database")
+            view_choice = input("Enter your choice: ")
 
-        except Exception as e:
-            print(e)
-        finally:
-            self.conn.close()
+            if view_choice == "*":
+                return
 
-    # Define Delete_data method to delete data from the table. The user will need to input the flight id to delete the corrosponding record.
+            if not view_choice.isdigit() or int(view_choice) > len(available_tables):
+                print("Invalid choice")
+                continue
+
+            view_name = available_tables[int(view_choice) - 1][0]
+
+            # Level 2: Handle view operations
+            while True:
+                columns = self.cur.execute(
+                    self.sql_table_info.format(view_name)
+                ).fetchall()
+
+                columns = [
+                    [column[1], column[2], "Required" if column[3] == 1 else "Optional"]
+                    for column in columns
+                ]
+
+                # Step one, ask for the primary key of target record
+                pk_name = columns[0][0]
+                pk_value = input(
+                    f"\n[{view_name}] Enter the [{pk_name}] of the record you want to update: "
+                )
+
+                # Step two, get the target record
+                selected_record = self.cur.execute(
+                    self.sql_search.format("*", view_name, pk_name), (pk_value,)
+                ).fetchone()
+
+                if not selected_record:
+                    print("Record not found!")
+                    break
+
+                # append current values to the columns list at the end
+                columns = [
+                    column + [selected_record[index]]
+                    for index, column in enumerate(columns)
+                ]
+
+                print(f"\n[{view_name}] Enter the data to update [{pk_value}]: ")
+                print(
+                    "HINT: (column_name, data_type, Required/Optional, current_value)"
+                )
+                print("HINT: Hit enter to keep the current value\n")
+
+                data = {}
+                for column in columns:
+                    data[column[0]] = input(f"Enter the value for {str(column)}: ")
+
+                # Empty entries are kept as is
+                for column in columns:
+                    if data[column[0]] == "":
+                        data[column[0]] = column[3]
+
+                try:
+                    update_str = ", ".join(
+                        f"{column[0]} = '{data[column[0]]}'" for column in columns
+                    )
+
+                    self.cur.execute(
+                        self.sql_update_data.format(
+                            view_name, update_str, f"{pk_name} = '{pk_value}'"
+                        )
+                    )
+                    self.conn.commit()
+                    print("Record updated successfully!")
+
+                except Exception as e:
+                    print(f"Error: {e}")
+
+                update_more = input("Do you want to update more records? [Y/n]: ")
+                if update_more.lower() != "y":
+                    break
 
     def delete_data(self):
-        try:
-            self.get_connection()
+        available_tables = self.cur.execute(self.sql_available_tables).fetchall()
 
-            if result.rowcount != 0:
-                print(str(result.rowcount) + "Row(s) affected.")
-            else:
-                print("Cannot find this record in the database")
+        while True:
+            # Level 1: Display available table options
+            print("\nSelect the table of your interest to delete records:")
+            for index, view in enumerate(available_tables, 1):
+                print(f" {index}. {view[0]}")
+            print(" *. < Back")
 
-        except Exception as e:
-            print(e)
-        finally:
-            self.conn.close()
+            view_choice = input("Enter your choice: ")
+
+            if view_choice == "*":
+                return
+
+            if not view_choice.isdigit() or int(view_choice) > len(available_tables):
+                print("Invalid choice")
+                continue
+
+            view_name = available_tables[int(view_choice) - 1][0]
+
+            # Level 2: Handle view operations
+            while True:
+                columns = self.cur.execute(
+                    self.sql_table_info.format(view_name)
+                ).fetchall()
+
+                columns = [
+                    [column[1], column[2], "Required" if column[3] == 1 else "Optional"]
+                    for column in columns
+                ]
+
+                # Step one, ask for the primary key of target record
+                pk_name = columns[0][0]
+                pk_value = input(
+                    f"\n[{view_name}] Enter the [{pk_name}] of the record you want to delete: "
+                )
+
+                # Step two, get the target record
+                cursor = self.cur.execute(
+                    self.sql_search.format("*", view_name, pk_name), (pk_value,)
+                )
+
+                # Step three, confirm deletion
+                try:
+                    Formatter.print_formatted(cursor)
+                    print(f"\nAre you sure you want to delete this record?")
+                    delete_confirm = input("Confirm deletion? [y/N]: ")
+                    if delete_confirm.lower() == "y":
+                        self.cur.execute(
+                            self.sql_delete_data.format(
+                                view_name, f"{pk_name} = '{pk_value}'"
+                            )
+                        )
+                        self.conn.commit()
+                        print("Record deleted successfully!")
+                except Exception as e:
+                    print(f"Error: {e}")
+
+                delete_more = input("Do you want to delete more records? [Y/n]: ")
+                if delete_more.lower() != "y":
+                    break
