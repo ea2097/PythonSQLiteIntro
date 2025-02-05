@@ -12,6 +12,10 @@ class Formatter:
         # Fetch all rows
         rows = data.fetchall()
 
+        # Raise exception if no rows are returned
+        if not rows:
+            raise Exception("No records found")
+
         # Determine column widths
         column_widths = [
             max(len(str(item)) for item in col) for col in zip(headers, *rows)

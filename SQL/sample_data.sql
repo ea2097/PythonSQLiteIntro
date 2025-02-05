@@ -150,16 +150,15 @@ VALUES
     ),
     (
         'CAI',
-        null,
-        null,
-        null,
-        null
+        NULL,
+        NULL,
+        NULL,
+        NULL
     ) ON CONFLICT(airport_code) DO NOTHING;
 
 INSERT INTO
-    Aircraft (
+    Aircrafts (
         tail_number,
-        msn,
         model,
         capacity,
         manufacture_year,
@@ -168,7 +167,6 @@ INSERT INTO
 VALUES
     (
         'N737AB',
-        '28010',
         'Boeing 737',
         180,
         2015,
@@ -176,7 +174,6 @@ VALUES
     ),
     (
         'D-AINA',
-        '1234',
         'Airbus A320',
         160,
         2017,
@@ -184,7 +181,6 @@ VALUES
     ),
     (
         'N777BC',
-        '28683',
         'Boeing 777',
         350,
         2012,
@@ -192,7 +188,6 @@ VALUES
     ),
     (
         'F-WXWB',
-        '0001',
         'Airbus A350',
         366,
         2019,
@@ -200,7 +195,6 @@ VALUES
     ),
     (
         'JA787A',
-        '34530',
         'Boeing 787',
         296,
         2018,
@@ -208,7 +202,6 @@ VALUES
     ),
     (
         'G-BNLA',
-        '21441',
         'Boeing 747',
         400,
         2010,
@@ -216,7 +209,6 @@ VALUES
     ),
     (
         'A6-APB',
-        '0002',
         'Airbus A380',
         555,
         2016,
@@ -224,7 +216,6 @@ VALUES
     ),
     (
         'PP-XMA',
-        '19000',
         'Embraer E190',
         114,
         2018,
@@ -232,7 +223,6 @@ VALUES
     ),
     (
         'N767CX',
-        '25879',
         'Boeing 767',
         250,
         2013,
@@ -240,7 +230,6 @@ VALUES
     ),
     (
         'TC-JKR',
-        '3456',
         'Airbus A321',
         190,
         2019,
@@ -248,7 +237,6 @@ VALUES
     ),
     (
         'N757PW',
-        '26247',
         'Boeing 757',
         243,
         2014,
@@ -256,7 +244,6 @@ VALUES
     ),
     (
         'D-AKNF',
-        '4567',
         'Airbus A319',
         156,
         2012,
@@ -264,7 +251,6 @@ VALUES
     ),
     (
         'C-FCRJ',
-        '15002',
         'Bombardier CRJ900',
         90,
         2020,
@@ -272,7 +258,6 @@ VALUES
     ),
     (
         'N737MX',
-        '4471',
         'Boeing 737 MAX',
         172,
         2021,
@@ -280,7 +265,6 @@ VALUES
     ),
     (
         'C-GSTA',
-        '55001',
         'Airbus A220',
         140,
         2022,
@@ -288,11 +272,10 @@ VALUES
     ),
     (
         'TEST',
-        'TEST',
-        null,
-        null,
-        null,
-        null
+        NULL,
+        NULL,
+        NULL,
+        NULL
     ) ON CONFLICT(tail_number) DO NOTHING;
 
 INSERT INTO
@@ -326,7 +309,7 @@ VALUES
     ),
     (
         'ATP54321USA',
-        'Michael',
+        'Mike',
         'Brown',
         'Captain',
         '555666777',
@@ -336,7 +319,7 @@ VALUES
     (
         'ATP78901UK',
         'Sarah',
-        'Johnson',
+        'John',
         'First Officer',
         '111222333',
         '1995-03-15',
@@ -345,7 +328,7 @@ VALUES
     (
         'ATP45678CAN',
         'David',
-        'Williams',
+        'Will',
         'Captain',
         '333444555',
         '1988-08-21',
@@ -372,7 +355,7 @@ VALUES
     (
         'ATP78923ESP',
         'Olivia',
-        'Martinez',
+        'Martin',
         'First Officer',
         '666777888',
         '1997-06-28',
@@ -380,7 +363,7 @@ VALUES
     ),
     (
         'ATP89034MEX',
-        'William',
+        'Will',
         'Garcia',
         'Captain',
         '555666777',
@@ -400,10 +383,10 @@ VALUES
         'Test',
         'Best',
         'Mike',
-        null,
-        null,
-        null,
-        null
+        NULL,
+        NULL,
+        NULL,
+        NULL
     ) ON CONFLICT(license_number) DO NOTHING;
 
 INSERT INTO
@@ -599,10 +582,10 @@ VALUES
     ),
     (
         'TEST',
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL
     ) ON CONFLICT(flight_number) DO NOTHING;
